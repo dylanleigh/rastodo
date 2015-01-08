@@ -1,0 +1,21 @@
+
+Rastodo Changelog
+=================
+
+http://dylanleigh.net/software/rastodo/
+
+------------------------------------------------------------------------
+r244 | dleigh | 2014-08-02 16:42:17 +1000 (Sat, 02 Aug 2014)
+Fixed bug: File argument not being passed properly when spawning editor
+
+------------------------------------------------------------------------
+r240 | dleigh | 2014-06-19 20:26:35 +1000 (Thu, 19 Jun 2014)
+Edited docstring and SVN keywords
+Cleaned up example and added URL
+
+------------------------------------------------------------------------
+r228 | dleigh | 2014-02-09 23:50:59 +1100 (Sun, 09 Feb 2014)
+Added --terminal option to force GUI off on android
+
+------------------------------------------------------------------------
+(Changes older than 2014 omitted)

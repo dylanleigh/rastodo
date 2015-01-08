@@ -1,0 +1,21 @@
+c0 always today (this doesn't have a category)
+c1 always tomorrow (this doesn't have a category either)
+[CS101   ]
+t  2014-06-03 week 1 lab report
+t  2014-06-10 week 2 lab report
+[CS134   ]
+c0 see lecturer about something asap
+t  2014-06-13 assignment 1 due
+t  2014-07-23 assignment 2 due
+[CS123   ]
+a2 2014-06-05 12:30 appointment with lecturer about project
+t  2014-06-15 project report 1 due
+[new types]
+a3 2014-06-07 doctor's appointment
+s0 2014-06-06 do backups (s0 - this appears only on the day)
+s1 2014-06-06 backups tomorrow! (this first appears the day before)
+c2            fix something soon
+w             fix something whenever
+[birthdays]
+a15 2014-06-11 Alice's birthday
+a12 2014-06-08 Bob's birthday
