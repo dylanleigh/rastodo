@@ -1,4 +1,11 @@
 
+THIS FILE IS DEPRECATED
+see github repo at
+
+https://github.com/dylanleigh/rastodo
+
+for change details
+
 Rastodo Changelog
 =================
 
