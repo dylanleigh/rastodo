@@ -9,6 +9,8 @@ Rastodo/Rastatodo is a cross-platform Python script which parses a text file
 containing "To Do" items and displays them in the order of urgency and
 importance.
 
+![sample output](http://dylanleigh.net/software/rastodo/sampleoutput.png)
+
 # Features
 
 - Single flat text file backend. Easy to edit many items, and you
