@@ -270,13 +270,17 @@ class TodoItem(object):
 # end TodoItem class
 
 # Regexes for parsing lines
-regexT = re.compile(r'[Tt]\s+(\d{4}-\d{2}-\d{2})\s+(.+)')
-regexS = re.compile(r'[Ss](\d+)\s+(\d{4}-\d{2}-\d{2})\s+(.+)')
-regexA = re.compile(r'[Aa](\d+)\s+(\d{4}-\d{2}-\d{2})\s+(.+)')
-regexC = re.compile(r'[Cc](\d+)\s+(.+)')
-regexW = re.compile(r'[Ww]\s+(.+)')
-regexP = re.compile(r'[Pp]\s+(\d{4}-\d{2}-\d{2})\s+(.+)')
-regexF = re.compile(r'[Ff]\s+(\d{4}-\d{2}-\d{2})\s+(.+)')
+regexT = re.compile(r'[Tt]\s+(\d{4}-\d{2}-\d{2})\s+(.+)')         # Standard "todo" by date
+regexS = re.compile(r'[Ss](\d+)\s+(\d{4}-\d{2}-\d{2})\s+(.+)')    # sleeping "todo" by date
+regexA = re.compile(r'[Aa](\d+)\s+(\d{4}-\d{2}-\d{2})\s+(.+)')    # appointment
+regexC = re.compile(r'[Cc](\d+)\s+(.+)')                          # constant days away
+regexW = re.compile(r'[Ww]\s+(.+)')                               # "wishlist" no set date
+# TODO: These are not currently implemented
+#regexP = re.compile(r'[Pp]\s+(\d{4}-\d{2}-\d{2})\s+(.+)')         # "Pending"
+#regexF = re.compile(r'[Ff]\s+(\d{4}-\d{2}-\d{2})\s+(.+)')         # "Followup"
+#regexR = re.compile(r'[Rr]\s+(\d{4}-\d{2}-\d{2})\s+([=+])(\d)([dwmy)(.+)')  # "Recurring"
+# TODO: Recurring r 2016-02-20 +12d add 12 days from today
+# TODO: Recurring r 2016-02-20 =1w 1 week from todo date exactly
 
 
 # Standalone functions
