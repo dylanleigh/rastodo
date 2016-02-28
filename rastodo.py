@@ -207,13 +207,14 @@ exCategories = None  # If none, dont filter on this
 class TodoItem(object):
     # Every todo item has a description and type
     # If cat/days/date are not given, we do not use or display.
-    def __init__(self, type, desc, \
+    def __init__(self, type, desc, line, \
                  category=None, days=None, date=None, wake=None, recur=None):
         self.type = type  # validation TODO
+        self.line = int(line)
         self.desc = desc
         self.category = category
         self.date = date
-        self.wake = wake
+        self.wake = int(wake)
         self.days = int(days)
         if recur:
             pass
@@ -308,7 +309,7 @@ def parseISODate(s):
     return datetime.date(int(y), int(m), int(d))
 
 
-def parseTodoLine(line, category=None):
+def parseTodoLine(line, num, category=None):
     '''Takes a single line string (and optionally the current
        category); returns a todo item or None if it is invalid.'''
     # Determine type of line
@@ -319,7 +320,14 @@ def parseTodoLine(line, category=None):
             date = parseISODate(mat.group(1))
             desc = mat.group(2)
             days = (date - today).days
-            return TodoItem('t', desc, category, days, date)
+            return TodoItem(
+                't',
+                desc,
+                linenum=num,
+                category=category,
+                days=days,
+                date=date
+                )
         else:
             return None
 
@@ -461,6 +469,9 @@ if __name__ == '__main__':
                          help='Shows all items, regardless of date and filtering')
     optparser.add_option('-d', '--days', \
                          help='Days after which item will not be included')
+
+    optparser.add_option('-b', '--bump', \
+                         help='Bump a recurring item (on specified line) to next due date')
 
     # Don't use store_const for only-types for if-else later XXX
     optparser.add_option('--only-types', \
