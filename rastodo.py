@@ -197,6 +197,7 @@ ANSI_NORMAL = "\033[0m"
 #Filtering items (XXX: defaults)
 daysCutoff = 22  # Days away to display items
 # TODO: different days/types defaults on droid?
+showLines = False
 onlyTypes = validTypes  # ? don't show w items on droid?
 onlyCategories = None  # If none, dont filter on this
 exCategories = None  # If none, dont filter on this
@@ -340,7 +341,7 @@ def parseTodoLine(line, num, category=None):
             date = parseISODate(mat.group(2))
             desc = mat.group(3)
             days = (date - today).days
-            return TodoItem('s', desc, category, days, date, wake)
+            return TodoItem('s', desc, category, days, date, wake) # FIXME fix
         else:
             return None
 
@@ -351,7 +352,7 @@ def parseTodoLine(line, num, category=None):
             date = parseISODate(mat.group(2))
             desc = mat.group(3)
             days = (date - today).days
-            return TodoItem('a', desc, category, days, date, wake)
+            return TodoItem('a', desc, category, days, date, wake) # FIXME fix
         else:
             return None
 
@@ -360,7 +361,7 @@ def parseTodoLine(line, num, category=None):
         if mat:
             days = int(mat.group(1))
             desc = mat.group(2)
-            return TodoItem('c', desc, category, days)
+            return TodoItem('c', desc, category, days) # FIXME fix
         else:
             return None
 
@@ -368,7 +369,7 @@ def parseTodoLine(line, num, category=None):
         mat = regexW.match(line)
         if mat:
             desc = mat.group(1)
-            return TodoItem('w', desc, category)
+            return TodoItem('w', desc, category) # FIXME fix
         else:
             return None
 
@@ -380,7 +381,7 @@ def parseTodoLine(line, num, category=None):
             recur = mat.group(3)  # FIXME parse recur
             desc = mat.group(4)
             days = (date - today).days
-            return TodoItem('s', desc, category, days, date, wake, recur)
+            return TodoItem('s', desc, category, days, date, wake, recur) # FIXME fix
         else:
             return None
 
