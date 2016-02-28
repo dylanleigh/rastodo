@@ -78,6 +78,8 @@ s0 2014-06-06 do backups (s0 - this appears only on the day)
 s1 2014-06-06 backups tomorrow! (this first appears the day before)
 c2            fix something soon
 w             fix something whenever
+r 2016-02-02 +2m Do something every 2 months apart
+r 2016-02-01 =2m Do something every 2 months on the same day
 
 [birthdays]
 a15 2014-06-11 Alice's birthday
@@ -103,6 +105,14 @@ a12 2014-06-08 Bob's birthday
                    as you can filter on type this lets you easily show
                    only appointments in the output. They also display the
                    Weekday in the todo entry.
+
+ r - Recurring - Priority the same as sleeping items, and has an extra
+                 '+nx'/'=nx' entry after the date.
+                 The x is d (days), w (weeks), m (months) or y (years)
+                 These items can be bumped on the commandline/GUI to update
+                 the due date by the given period of time.
+                 If + the bump will be relative to the current date; if = it will be
+                 relative to the old due date.
 
  c - Constant - No date, the priority is number of days away this item
                 is "due".
@@ -275,12 +285,15 @@ regexS = re.compile(r'[Ss](\d+)\s+(\d{4}-\d{2}-\d{2})\s+(.+)')    # sleeping "to
 regexA = re.compile(r'[Aa](\d+)\s+(\d{4}-\d{2}-\d{2})\s+(.+)')    # appointment
 regexC = re.compile(r'[Cc](\d+)\s+(.+)')                          # constant days away
 regexW = re.compile(r'[Ww]\s+(.+)')                               # "wishlist" no set date
+regexR =
+re.compile(r'[Rr]\s+(\d{4}-\d{2}-\d{2})\s+([=+])(\d+)([dwmy])\s+(.+)')  # "Recurring"
+# TODO: Recurring r 2016-02-20 +12d add 12 days from today
+# TODO: Recurring r 2016-02-20 =1w 1 week from todo date exactly
+# TODO: Implement editing command for recurring items
+
 # TODO: These are not currently implemented
 #regexP = re.compile(r'[Pp]\s+(\d{4}-\d{2}-\d{2})\s+(.+)')         # "Pending"
 #regexF = re.compile(r'[Ff]\s+(\d{4}-\d{2}-\d{2})\s+(.+)')         # "Followup"
-#regexR = re.compile(r'[Rr]\s+(\d{4}-\d{2}-\d{2})\s+([=+])(\d)([dwmy)(.+)')  # "Recurring"
-# TODO: Recurring r 2016-02-20 +12d add 12 days from today
-# TODO: Recurring r 2016-02-20 =1w 1 week from todo date exactly
 
 
 # Standalone functions
