@@ -533,6 +533,8 @@ if __name__ == '__main__':
                 onlyTypes = onlyTypes.replace(type, '')
     # end if only types
 
+    showLines = True if cliopts.line_numbers else False
+
     # Open the file and give it to the parsing function.
     todoFile = open(todofname)
     todoList = parseTodoFile(todoFile)
