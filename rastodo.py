@@ -245,6 +245,8 @@ class TodoItem(object):
             else:
                 preamble = ANSI_RED
 
+        if showLines:  # If set, line numbers should be first
+            preample = "%d %s" % (self.line, preamble)
         if showType:  # show the type of the entry
             preamble = "%s%s " % (preamble, self.type)
 
@@ -389,6 +391,7 @@ def parseTodoLine(line, num, category=None):
 def todoInclude(item):
     '''Returns true if the todo item should be included based on
        the global options. Otherwise returns false.'''
+    # TODO move into class
     # Filter items
     if not cliopts.all:
         if item.wake is not None:
@@ -464,6 +467,8 @@ if __name__ == '__main__':
 
     optparser.add_option('--sort-cat', action='store_true', \
                          help='Group by category')
+    optparser.add_option('--line-numbers', action='store_true', \
+                         help='Show line numbers from todo file in output')    
 
     optparser.add_option('--all', action='store_true', \
                          help='Shows all items, regardless of date and filtering')
