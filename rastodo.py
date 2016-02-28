@@ -208,13 +208,16 @@ class TodoItem(object):
     # Every todo item has a description and type
     # If cat/days/date are not given, we do not use or display.
     def __init__(self, type, desc, \
-                 category=None, days=None, date=None, wake=None):
+                 category=None, days=None, date=None, wake=None, recur=None):
         self.type = type  # validation TODO
         self.desc = desc
         self.category = category
         self.date = date
         self.wake = wake
         self.days = days
+        if recur:
+            pass
+            # FIXME pass recur string
 
     def daysAway(self):
         # for wishlist items without a date, fudges days = the
@@ -307,7 +310,7 @@ def parseISODate(s):
 
 def parseTodoLine(line, category=None):
     '''Takes a single line string (and optionally the current
-       categoy); returns a todo item or None if it is invalid.'''
+       category); returns a todo item or None if it is invalid.'''
     # Determine type of line
     #print line
     if line[0] == 't':  # Todo item
@@ -356,6 +359,18 @@ def parseTodoLine(line, category=None):
         if mat:
             desc = mat.group(1)
             return TodoItem('w', desc, category)
+        else:
+            return None
+
+    elif line[0] == 'r':  # Recurring item
+        mat = regexR.match(line)
+        if mat:
+            wake = int(mat.group(1))
+            date = parseISODate(mat.group(2))
+            recur = mat.group(3)  # FIXME parse recur
+            desc = mat.group(4)
+            days = (date - today).days
+            return TodoItem('s', desc, category, days, date, wake, recur)
         else:
             return None
 
