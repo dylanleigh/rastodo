@@ -78,8 +78,8 @@ s0 2014-06-06 do backups (s0 - this appears only on the day)
 s1 2014-06-06 backups tomorrow! (this first appears the day before)
 c2            fix something soon
 w             fix something whenever
-r 2016-02-02 +2m Do something every 2 months apart
-r 2016-02-01 =2m Do something every 2 months on the same day
+r5 2016-02-02 +2m Do something every 2 months apart
+r3 2016-02-01 =2m Do something every 2 months on the same day
 
 [birthdays]
 a15 2014-06-11 Alice's birthday
@@ -99,7 +99,8 @@ a12 2014-06-08 Bob's birthday
             Equivalent to the old todo.c usage.
 
  s - Sleeping - Priority is the number of days proximity before it
-                is shown in the output.
+                is shown in the output. Useful for things you don't need to think
+                about until they are nearly due.
 
  a - Appointment - These are handled the same as sleeping items, but
                    as you can filter on type this lets you easily show
@@ -285,8 +286,7 @@ regexS = re.compile(r'[Ss](\d+)\s+(\d{4}-\d{2}-\d{2})\s+(.+)')    # sleeping "to
 regexA = re.compile(r'[Aa](\d+)\s+(\d{4}-\d{2}-\d{2})\s+(.+)')    # appointment
 regexC = re.compile(r'[Cc](\d+)\s+(.+)')                          # constant days away
 regexW = re.compile(r'[Ww]\s+(.+)')                               # "wishlist" no set date
-regexR =
-re.compile(r'[Rr]\s+(\d{4}-\d{2}-\d{2})\s+([=+])(\d+)([dwmy])\s+(.+)')  # "Recurring"
+regexR = re.compile(r'[Rr](\d+)\s+(\d{4}-\d{2}-\d{2})\s+([=+])(\d+)([dwmy])\s+(.+)')  # "Recurring"
 # TODO: Recurring r 2016-02-20 +12d add 12 days from today
 # TODO: Recurring r 2016-02-20 =1w 1 week from todo date exactly
 # TODO: Implement editing command for recurring items
