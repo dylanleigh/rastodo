@@ -214,7 +214,7 @@ class TodoItem(object):
         self.category = category
         self.date = date
         self.wake = wake
-        self.days = days
+        self.days = int(days)
         if recur:
             pass
             # FIXME pass recur string
@@ -225,7 +225,7 @@ class TodoItem(object):
         if self.days is None:
             return daysCutoff
         else:
-            return int(self.days)
+            return self.days
 
 
     def prettyPrintStr(self, showType=True):
