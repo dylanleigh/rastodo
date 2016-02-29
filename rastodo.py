@@ -347,7 +347,7 @@ def parseTodoLine(line, num, category=None):
                 linenum=num,
                 category=category,
                 days=days,
-                date=date
+                date=date,
                 wake=wake
             )
         else:
@@ -366,7 +366,7 @@ def parseTodoLine(line, num, category=None):
                 linenum=num,
                 category=category,
                 days=days,
-                date=date
+                date=date,
                 wake=wake
             )
         else:
