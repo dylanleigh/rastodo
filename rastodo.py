@@ -180,7 +180,7 @@ else:  # android:
 DEFAULTTODOFILE = "%s/.todo" % HOMEDIR  # Default for help
 todofname = DEFAULTTODOFILE
 today = datetime.date.today()
-validTypes = 'tsacw'
+validTypes = 'tsacwr'
 
 # ANSI colours
 # these are all with black background (40)
