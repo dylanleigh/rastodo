@@ -411,6 +411,7 @@ def parseTodoLine(line, num, category=None):
             return TodoItem(
                 'r',
                 desc,
+                linenum=num,
                 category=category,
                 days=days,
                 date=date,
@@ -469,7 +470,7 @@ def parseTodoFile(file):
         if line[0] == '[':
             category = line.lstrip('[').rstrip(']\n')
         else:  # try parsing as a todo line
-            todoitem = parseTodoLine(line, category)
+            todoitem = parseTodoLine(line, linecount+1, category)
             if todoitem:
                 if todoInclude(todoitem):
                     ret.append(todoitem)
