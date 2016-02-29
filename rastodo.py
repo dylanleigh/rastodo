@@ -208,10 +208,10 @@ exCategories = None  # If none, dont filter on this
 class TodoItem(object):
     # Every todo item has a description and type
     # If cat/days/date are not given, we do not use or display.
-    def __init__(self, type, desc, line, \
+    def __init__(self, type, desc, linenum, \
                  category=None, days=None, date=None, wake=None, recur=None):
         self.type = type  # validation TODO
-        self.line = int(line)
+        self.linenum = int(linenum)
         self.desc = desc
         self.category = category
         self.date = date
@@ -247,7 +247,7 @@ class TodoItem(object):
                 preamble = ANSI_RED
 
         if showLines:  # If set, line numbers should be first
-            preample = "%d %s" % (self.line, preamble)
+            preample = "%d %s" % (self.linenum, preamble)
         if showType:  # show the type of the entry
             preamble = "%s%s " % (preamble, self.type)
 
