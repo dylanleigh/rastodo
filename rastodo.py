@@ -382,7 +382,7 @@ def parseTodoLine(line, num, category=None):
                 desc,
                 linenum=num,
                 category=category,
-                days=days,          
+                days=days,
             )
         else:
             return None
@@ -391,7 +391,12 @@ def parseTodoLine(line, num, category=None):
         mat = regexW.match(line)
         if mat:
             desc = mat.group(1)
-            return TodoItem('w', desc, category) # FIXME fix
+            return TodoItem(
+                'w',
+                desc,
+                linenum=num,
+                category=category,
+            )
         else:
             return None
 
@@ -403,7 +408,15 @@ def parseTodoLine(line, num, category=None):
             recur = mat.group(3)  # FIXME parse recur
             desc = mat.group(4)
             days = (date - today).days
-            return TodoItem('s', desc, category, days, date, wake, recur) # FIXME fix
+            return TodoItem(
+                'r',
+                desc,
+                category=category,
+                days=days,
+                date=date,
+                wake=wake,
+                recur=recur   # FIXME parse components, or "next" day?
+            )
         else:
             return None
 
