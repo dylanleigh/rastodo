@@ -330,7 +330,7 @@ def parseTodoLine(line, num, category=None):
                 category=category,
                 days=days,
                 date=date
-                )
+            )
         else:
             return None
 
@@ -341,7 +341,15 @@ def parseTodoLine(line, num, category=None):
             date = parseISODate(mat.group(2))
             desc = mat.group(3)
             days = (date - today).days
-            return TodoItem('s', desc, category, days, date, wake) # FIXME fix
+            return TodoItem(
+                's',
+                desc,
+                linenum=num,
+                category=category,
+                days=days,
+                date=date
+                wake=wake
+            )
         else:
             return None
 
@@ -352,7 +360,15 @@ def parseTodoLine(line, num, category=None):
             date = parseISODate(mat.group(2))
             desc = mat.group(3)
             days = (date - today).days
-            return TodoItem('a', desc, category, days, date, wake) # FIXME fix
+            return TodoItem(
+                'a',
+                desc,
+                linenum=num,
+                category=category,
+                days=days,
+                date=date
+                wake=wake
+            )
         else:
             return None
 
@@ -361,7 +377,13 @@ def parseTodoLine(line, num, category=None):
         if mat:
             days = int(mat.group(1))
             desc = mat.group(2)
-            return TodoItem('c', desc, category, days) # FIXME fix
+            return TodoItem(
+                'c',
+                desc,
+                linenum=num,
+                category=category,
+                days=days,          
+            )
         else:
             return None
 
