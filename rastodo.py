@@ -215,8 +215,8 @@ class TodoItem(object):
         self.desc = desc
         self.category = category
         self.date = date
-        self.wake = int(wake)
-        self.days = int(days)
+        self.wake = int(wake) if wake else None
+        self.days = int(days) if days else None
         if recur:
             pass
             # FIXME pass recur string
@@ -233,6 +233,7 @@ class TodoItem(object):
     def prettyPrintStr(self, showType=True):
         '''Returns a string representing this todoitem suitable for display to user'''
         # TODO: break long lines for droid?
+        # TODO: Make __str__?
         preamble = ""  # For colours and status
         if useColours:
             if self.days is None:
@@ -293,7 +294,7 @@ regexS = re.compile(r'[Ss](\d+)\s+(\d{4}-\d{2}-\d{2})\s+(.+)')    # sleeping "to
 regexA = re.compile(r'[Aa](\d+)\s+(\d{4}-\d{2}-\d{2})\s+(.+)')    # appointment
 regexC = re.compile(r'[Cc](\d+)\s+(.+)')                          # constant days away
 regexW = re.compile(r'[Ww]\s+(.+)')                               # "wishlist" no set date
-regexR = re.compile(r'[Rr](\d+)\s+(\d{4}-\d{2}-\d{2})\s+([=+])(\d+)([dwmy])\s+(.+)')  # "Recurring"
+regexR = re.compile(r'[Rr](\d+)\s+(\d{4}-\d{2}-\d{2})\s+([=+]\d+[dwmy])\s+(.+)')  # "Recurring"
 # TODO: Recurring r 2016-02-20 +12d add 12 days from today
 # TODO: Recurring r 2016-02-20 =1w 1 week from todo date exactly
 # TODO: Implement editing command for recurring items
@@ -316,7 +317,6 @@ def parseTodoLine(line, num, category=None):
     '''Takes a single line string (and optionally the current
        category); returns a todo item or None if it is invalid.'''
     # Determine type of line
-    #print line
     if line[0] == 't':  # Todo item
         mat = regexT.match(line)
         if mat:
