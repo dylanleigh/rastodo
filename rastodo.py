@@ -294,7 +294,7 @@ regexS = re.compile(r'[Ss](\d+)\s+(\d{4}-\d{2}-\d{2})\s+(.+)')    # sleeping "to
 regexA = re.compile(r'[Aa](\d+)\s+(\d{4}-\d{2}-\d{2})\s+(.+)')    # appointment
 regexC = re.compile(r'[Cc](\d+)\s+(.+)')                          # constant days away
 regexW = re.compile(r'[Ww]\s+(.+)')                               # "wishlist" no set date
-regexR = re.compile(r'[Rr](\d+)\s+(\d{4}-\d{2}-\d{2})\s+([=+]\d+[dwmy])\s+(.+)')  # "Recurring"
+regexR = re.compile(r'[Rr](\d+)\s+(\d{4}-\d{2}-\d{2})\s+([=+])(\d+)([dwmy])\s+(.+)')  # "Recurring"
 # TODO: Recurring r 2016-02-20 +12d add 12 days from today
 # TODO: Recurring r 2016-02-20 =1w 1 week from todo date exactly
 # TODO: Implement editing command for recurring items
@@ -405,9 +405,19 @@ def parseTodoLine(line, num, category=None):
         if mat:
             wake = int(mat.group(1))
             date = parseISODate(mat.group(2))
-            recur = mat.group(3)  # FIXME parse recur
-            desc = mat.group(4)
+            recurtype = mat.group(3)  # FIXME parse recur
+            recurlen = mat.group(4)  # FIXME parse recur
+            recurunit = mat.group(5)  # FIXME parse recur
+            desc = mat.group(6)
+
             days = (date - today).days
+            if recurtype == '=':
+                pass
+            elif recurtype == '+':
+                pass
+            else:
+                return None
+
             return TodoItem(
                 'r',
                 desc,
@@ -416,7 +426,7 @@ def parseTodoLine(line, num, category=None):
                 days=days,
                 date=date,
                 wake=wake,
-                recur=recur   # FIXME parse components, or "next" day?
+                #recur=recur   # FIXME parse components, or "next" day?
             )
         else:
             return None
@@ -548,6 +558,7 @@ if __name__ == '__main__':
     # If edit mode, send to defined editor, replacing this process
     if cliopts.edit:
         os.execlp(EDITOR, "editor", todofname)  # replaces this process
+    # If bumping, TODO
 
     # Determine any cutoff dates, categories or types to be
     # excluded beforehand so that we don't include those items when
