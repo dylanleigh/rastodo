@@ -248,7 +248,7 @@ class TodoItem(object):
                 preamble = ANSI_RED
 
         if showLines:  # If set, line numbers should be first
-            preample = "%d %s" % (self.linenum, preamble)
+            preamble = "%03d %s" % (self.linenum, preamble)
         if showType:  # show the type of the entry
             preamble = "%s%s " % (preamble, self.type)
 
@@ -589,7 +589,7 @@ if __name__ == '__main__':
     if cliopts.two_lines:
         twoLines = True
     if cliopts.monochrome:
-        useColours = False;
+        useColours = False
 
     # Display items
     if droid is None:
