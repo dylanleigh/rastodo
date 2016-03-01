@@ -293,9 +293,9 @@ regexA = re.compile(r'[Aa](\d+)\s+(\d{4}-\d{2}-\d{2})\s+(.+)')    # appointment
 regexC = re.compile(r'[Cc](\d+)\s+(.+)')                          # constant days away
 regexW = re.compile(r'[Ww]\s+(.+)')                               # "wishlist" no set date
 regexR = re.compile(r'[Rr](\d+)\s+(\d{4}-\d{2}-\d{2})\s+([=+])(\d+)([dwmy])\s+(.+)')  # "Recurring"
-# TODO: Recurring r 2016-02-20 +12d add 12 days from today
-# TODO: Recurring r 2016-02-20 =1w 1 week from todo date exactly
-# TODO: Implement editing command for recurring items
+# Recurring r 2016-02-20 +12d add 12 days from today
+# Recurring r 2016-02-20 =1w 1 week from todo date exactly
+# TODO: Implement bump command for recurring items
 
 # TODO: These are not currently implemented
 #regexP = re.compile(r'[Pp]\s+(\d{4}-\d{2}-\d{2})\s+(.+)')         # "Pending"
