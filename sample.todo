@@ -16,6 +16,8 @@ s0 2014-06-06 do backups (s0 - this appears only on the day)
 s1 2014-06-06 backups tomorrow! (this first appears the day before)
 c2            fix something soon
 w             fix something whenever
+r9 2014-06-08 +2w Add two weeks from today when this repeats
+r8 2014-06-09 =1w repeat on the same day every week
 [birthdays]
 a15 2014-06-11 Alice's birthday
 a12 2014-06-08 Bob's birthday

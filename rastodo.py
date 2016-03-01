@@ -78,6 +78,8 @@ s0 2014-06-06 do backups (s0 - this appears only on the day)
 s1 2014-06-06 backups tomorrow! (this first appears the day before)
 c2            fix something soon
 w             fix something whenever
+r5 2016-02-02 +2m Do something every 2 months apart
+r3 2016-02-01 =2m Do something every 2 months on the same day
 
 [birthdays]
 a15 2014-06-11 Alice's birthday
@@ -97,12 +99,21 @@ a12 2014-06-08 Bob's birthday
             Equivalent to the old todo.c usage.
 
  s - Sleeping - Priority is the number of days proximity before it
-                is shown in the output.
+                is shown in the output. Useful for things you don't need to think
+                about until they are nearly due.
 
  a - Appointment - These are handled the same as sleeping items, but
                    as you can filter on type this lets you easily show
                    only appointments in the output. They also display the
                    Weekday in the todo entry.
+
+ r - Recurring - Priority the same as sleeping items, and has an extra
+                 '+nx'/'=nx' entry after the date.
+                 The x is d (days), w (weeks), m (months) or y (years)
+                 These items can be bumped on the commandline/GUI to update
+                 the due date by the given period of time.
+                 If + the bump will be relative to the current date; if = it will be
+                 relative to the old due date.
 
  c - Constant - No date, the priority is number of days away this item
                 is "due".
@@ -169,7 +180,7 @@ else:  # android:
 DEFAULTTODOFILE = "%s/.todo" % HOMEDIR  # Default for help
 todofname = DEFAULTTODOFILE
 today = datetime.date.today()
-validTypes = 'tsacw'
+validTypes = 'tsacwr'
 
 # ANSI colours
 # these are all with black background (40)
@@ -186,6 +197,7 @@ ANSI_NORMAL = "\033[0m"
 #Filtering items (XXX: defaults)
 daysCutoff = 22  # Days away to display items
 # TODO: different days/types defaults on droid?
+showLines = False
 onlyTypes = validTypes  # ? don't show w items on droid?
 onlyCategories = None  # If none, dont filter on this
 exCategories = None  # If none, dont filter on this
@@ -196,14 +208,16 @@ exCategories = None  # If none, dont filter on this
 class TodoItem(object):
     # Every todo item has a description and type
     # If cat/days/date are not given, we do not use or display.
-    def __init__(self, type, desc, \
-                 category=None, days=None, date=None, wake=None):
+    def __init__(self, type, desc, linenum, \
+                 category=None, days=None, date=None, wake=None, recur=None):
         self.type = type  # validation TODO
+        self.linenum = int(linenum)
         self.desc = desc
         self.category = category
         self.date = date
-        self.wake = wake
-        self.days = days
+        self.wake = int(wake) if wake else None
+        self.days = int(days) if days else None
+        self.recur = recur
 
     def daysAway(self):
         # for wishlist items without a date, fudges days = the
@@ -211,12 +225,13 @@ class TodoItem(object):
         if self.days is None:
             return daysCutoff
         else:
-            return int(self.days)
+            return self.days
 
 
     def prettyPrintStr(self, showType=True):
         '''Returns a string representing this todoitem suitable for display to user'''
         # TODO: break long lines for droid?
+        # TODO: Make __str__?
         preamble = ""  # For colours and status
         if useColours:
             if self.days is None:
@@ -230,6 +245,8 @@ class TodoItem(object):
             else:
                 preamble = ANSI_RED
 
+        if showLines:  # If set, line numbers should be first
+            preamble = "%03d %s" % (self.linenum, preamble)
         if showType:  # show the type of the entry
             preamble = "%s%s " % (preamble, self.type)
 
@@ -246,10 +263,10 @@ class TodoItem(object):
         else:
             days = '[%02d]' % self.days
 
-        # TODO stuff for repeat days goes here?
-
         if twoLines:  # newline before description
             self.desc = "%s%s" % ('\n', self.desc)
+        if self.recur:  # print date of next after desc
+            self.desc = "%s [next %s]" % (self.desc, self.recur.isoformat())
 
         if useColours:
             if self.category is None:
@@ -275,12 +292,14 @@ regexS = re.compile(r'[Ss](\d+)\s+(\d{4}-\d{2}-\d{2})\s+(.+)')    # sleeping "to
 regexA = re.compile(r'[Aa](\d+)\s+(\d{4}-\d{2}-\d{2})\s+(.+)')    # appointment
 regexC = re.compile(r'[Cc](\d+)\s+(.+)')                          # constant days away
 regexW = re.compile(r'[Ww]\s+(.+)')                               # "wishlist" no set date
+regexR = re.compile(r'[Rr](\d+)\s+(\d{4}-\d{2}-\d{2})\s+([=+])(\d+)([dwmy])\s+(.+)')  # "Recurring"
+# Recurring r 2016-02-20 +12d add 12 days from today
+# Recurring r 2016-02-20 =1w 1 week from todo date exactly
+# TODO: Implement bump command for recurring items
+
 # TODO: These are not currently implemented
 #regexP = re.compile(r'[Pp]\s+(\d{4}-\d{2}-\d{2})\s+(.+)')         # "Pending"
 #regexF = re.compile(r'[Ff]\s+(\d{4}-\d{2}-\d{2})\s+(.+)')         # "Followup"
-#regexR = re.compile(r'[Rr]\s+(\d{4}-\d{2}-\d{2})\s+([=+])(\d)([dwmy)(.+)')  # "Recurring"
-# TODO: Recurring r 2016-02-20 +12d add 12 days from today
-# TODO: Recurring r 2016-02-20 =1w 1 week from todo date exactly
 
 
 # Standalone functions
@@ -292,18 +311,24 @@ def parseISODate(s):
     return datetime.date(int(y), int(m), int(d))
 
 
-def parseTodoLine(line, category=None):
+def parseTodoLine(line, num, category=None):
     '''Takes a single line string (and optionally the current
-       categoy); returns a todo item or None if it is invalid.'''
+       category); returns a todo item or None if it is invalid.'''
     # Determine type of line
-    #print line
     if line[0] == 't':  # Todo item
         mat = regexT.match(line)
         if mat:
             date = parseISODate(mat.group(1))
             desc = mat.group(2)
             days = (date - today).days
-            return TodoItem('t', desc, category, days, date)
+            return TodoItem(
+                't',
+                desc,
+                linenum=num,
+                category=category,
+                days=days,
+                date=date
+            )
         else:
             return None
 
@@ -314,7 +339,15 @@ def parseTodoLine(line, category=None):
             date = parseISODate(mat.group(2))
             desc = mat.group(3)
             days = (date - today).days
-            return TodoItem('s', desc, category, days, date, wake)
+            return TodoItem(
+                's',
+                desc,
+                linenum=num,
+                category=category,
+                days=days,
+                date=date,
+                wake=wake
+            )
         else:
             return None
 
@@ -325,7 +358,15 @@ def parseTodoLine(line, category=None):
             date = parseISODate(mat.group(2))
             desc = mat.group(3)
             days = (date - today).days
-            return TodoItem('a', desc, category, days, date, wake)
+            return TodoItem(
+                'a',
+                desc,
+                linenum=num,
+                category=category,
+                days=days,
+                date=date,
+                wake=wake
+            )
         else:
             return None
 
@@ -334,7 +375,13 @@ def parseTodoLine(line, category=None):
         if mat:
             days = int(mat.group(1))
             desc = mat.group(2)
-            return TodoItem('c', desc, category, days)
+            return TodoItem(
+                'c',
+                desc,
+                linenum=num,
+                category=category,
+                days=days,
+            )
         else:
             return None
 
@@ -342,7 +389,57 @@ def parseTodoLine(line, category=None):
         mat = regexW.match(line)
         if mat:
             desc = mat.group(1)
-            return TodoItem('w', desc, category)
+            return TodoItem(
+                'w',
+                desc,
+                linenum=num,
+                category=category,
+            )
+        else:
+            return None
+
+    elif line[0] == 'r':  # Recurring item
+        mat = regexR.match(line)
+        if mat:
+            wake = int(mat.group(1))
+            date = parseISODate(mat.group(2))
+            recurtype = mat.group(3)
+            recurlen = int(mat.group(4))
+            recurunit = mat.group(5)
+            desc = mat.group(6)
+
+            days = (date - today).days
+
+            # Find time of next event
+            if recurunit == 'd':
+               datedelta = datetime.timedelta(days=recurlen)
+            elif recurunit == 'w':
+               datedelta = datetime.timedelta(days=recurlen*7)
+            # TODO longer times
+            #elif recurunit == 'm':
+            #   datedelta = datetime.timedelta(months=recurlen)
+            #elif recurunit == 'y':
+            #   datedelta = datetime.timedelta(months=recurlen*12)
+            else:
+                return None
+
+            if recurtype == '=':
+                nextdate = date + datedelta
+            elif recurtype == '+':
+                nextdate = datetime.date.today() + datedelta
+            else:
+                return None
+
+            return TodoItem(
+                'r',
+                desc,
+                linenum=num,
+                category=category,
+                days=days,
+                date=date,
+                wake=wake,
+                recur=nextdate
+            )
         else:
             return None
 
@@ -353,6 +450,7 @@ def parseTodoLine(line, category=None):
 def todoInclude(item):
     '''Returns true if the todo item should be included based on
        the global options. Otherwise returns false.'''
+    # TODO move into class
     # Filter items
     if not cliopts.all:
         if item.wake is not None:
@@ -394,7 +492,7 @@ def parseTodoFile(file):
         if line[0] == '[':
             category = line.lstrip('[').rstrip(']\n')
         else:  # try parsing as a todo line
-            todoitem = parseTodoLine(line, category)
+            todoitem = parseTodoLine(line, linecount+1, category)
             if todoitem:
                 if todoInclude(todoitem):
                     ret.append(todoitem)
@@ -428,11 +526,16 @@ if __name__ == '__main__':
 
     optparser.add_option('--sort-cat', action='store_true', \
                          help='Group by category')
+    optparser.add_option('--line-numbers', action='store_true', \
+                         help='Show line numbers from todo file in output')    
 
     optparser.add_option('--all', action='store_true', \
                          help='Shows all items, regardless of date and filtering')
     optparser.add_option('-d', '--days', \
                          help='Days after which item will not be included')
+
+    optparser.add_option('-b', '--bump', \
+                         help='Bump a recurring item (on specified line) to next due date')
 
     # Don't use store_const for only-types for if-else later XXX
     optparser.add_option('--only-types', \
@@ -467,6 +570,7 @@ if __name__ == '__main__':
     # If edit mode, send to defined editor, replacing this process
     if cliopts.edit:
         os.execlp(EDITOR, "editor", todofname)  # replaces this process
+    # If bumping, TODO
 
     # Determine any cutoff dates, categories or types to be
     # excluded beforehand so that we don't include those items when
@@ -488,6 +592,8 @@ if __name__ == '__main__':
                 onlyTypes = onlyTypes.replace(type, '')
     # end if only types
 
+    showLines = True if cliopts.line_numbers else False
+
     # Open the file and give it to the parsing function.
     todoFile = open(todofname)
     todoList = parseTodoFile(todoFile)
@@ -506,7 +612,7 @@ if __name__ == '__main__':
     if cliopts.two_lines:
         twoLines = True
     if cliopts.monochrome:
-        useColours = False;
+        useColours = False
 
     # Display items
     if droid is None:
