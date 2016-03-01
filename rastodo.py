@@ -217,9 +217,7 @@ class TodoItem(object):
         self.date = date
         self.wake = int(wake) if wake else None
         self.days = int(days) if days else None
-        if recur:
-            pass
-            # FIXME pass recur string
+        self.recur = recur
 
     def daysAway(self):
         # for wishlist items without a date, fudges days = the
@@ -265,10 +263,10 @@ class TodoItem(object):
         else:
             days = '[%02d]' % self.days
 
-        # TODO stuff for repeat days goes here?
-
         if twoLines:  # newline before description
             self.desc = "%s%s" % ('\n', self.desc)
+        if self.recur:  # print date of next after desc
+            self.desc = "%s [next %s]" % (self.desc, self.recur.isoformat())
 
         if useColours:
             if self.category is None:
