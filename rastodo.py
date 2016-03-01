@@ -502,6 +502,30 @@ def parseTodoFile(file):
     # end for line in file
     return ret
 
+def rewriteTodoFile(fname, action, linenum):
+    """
+    rewrites the todo file (safely, to a temp file first), modifying one line.
+    """
+    linecount = 0
+
+    # Before opening the new file make sure the arguments are valid TODO
+
+    outfile = NamedTemporaryFile()  # FIXME
+
+    with open(fname) as infile:
+        for line in infile:
+            linecount += 1
+            if linecount != linenum:
+                outfile.write(line)
+            else:  # Reached target line
+                if action == 'bump':
+                    pass # FIXME
+                else:
+                    print "ERROR: Unknown action %s" % action
+                    return None
+
+    # TODO: Copy outfile over old file name
+
 
 if __name__ == '__main__':
     # Parse commandline arguments
