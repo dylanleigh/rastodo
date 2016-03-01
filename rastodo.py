@@ -405,16 +405,30 @@ def parseTodoLine(line, num, category=None):
         if mat:
             wake = int(mat.group(1))
             date = parseISODate(mat.group(2))
-            recurtype = mat.group(3)  # FIXME parse recur
-            recurlen = mat.group(4)  # FIXME parse recur
-            recurunit = mat.group(5)  # FIXME parse recur
+            recurtype = mat.group(3)
+            recurlen = int(mat.group(4))
+            recurunit = mat.group(5)
             desc = mat.group(6)
 
             days = (date - today).days
+
+            # Find time of next event
+            if recurunit == 'd':
+               datedelta = datetime.timedelta(days=recurlen)
+            elif recurunit == 'w':
+               datedelta = datetime.timedelta(days=recurlen*7)
+            # TODO longer times
+            #elif recurunit == 'm':
+            #   datedelta = datetime.timedelta(months=recurlen)
+            #elif recurunit == 'y':
+            #   datedelta = datetime.timedelta(months=recurlen*12)
+            else:
+                return None
+
             if recurtype == '=':
-                pass
+                nextdate = date + datedelta
             elif recurtype == '+':
-                pass
+                nextdate = datetime.date.today() + datedelta
             else:
                 return None
 
@@ -426,7 +440,7 @@ def parseTodoLine(line, num, category=None):
                 days=days,
                 date=date,
                 wake=wake,
-                #recur=recur   # FIXME parse components, or "next" day?
+                recur=nextdate
             )
         else:
             return None
