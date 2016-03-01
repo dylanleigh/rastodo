@@ -534,8 +534,12 @@ if __name__ == '__main__':
     optparser.add_option('-d', '--days', \
                          help='Days after which item will not be included')
 
-    optparser.add_option('-b', '--bump', \
+    optparser.add_option('--line-bump', \
                          help='Bump a recurring item (on specified line) to next due date')
+    #optparser.add_option('--line-remove', \
+    #                     help='Remove the item on specified line')
+    #optparser.add_option('--line-edit', \
+    #                     help='Edit specified line')
 
     # Don't use store_const for only-types for if-else later XXX
     optparser.add_option('--only-types', \
@@ -555,6 +559,8 @@ if __name__ == '__main__':
     (cliopts, cliargs) = optparser.parse_args()
     # XXX: optparser has cyclic refs - destroy ?
 
+    # TODO: Break up below into functions!
+
     # Check term option first
     if cliopts.terminal:
         droid = None
@@ -570,7 +576,9 @@ if __name__ == '__main__':
     # If edit mode, send to defined editor, replacing this process
     if cliopts.edit:
         os.execlp(EDITOR, "editor", todofname)  # replaces this process
-    # If bumping, TODO
+    # If bumping, read the whole file up to the given line
+    if cliopts.line_bump:
+        rewrite_todo_file(todofname, 'bump', cliopts.line_bump)
 
     # Determine any cutoff dates, categories or types to be
     # excluded beforehand so that we don't include those items when
