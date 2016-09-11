@@ -215,8 +215,8 @@ class TodoItem(object):
         self.desc = desc
         self.category = category
         self.date = date
-        self.wake = int(wake) if wake else None
-        self.days = int(days) if days else None
+        self.wake = int(wake) if wake is not None else None
+        self.days = int(days) if days is not None else None
         self.recur = recur
 
     def daysAway(self):
