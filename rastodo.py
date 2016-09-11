@@ -208,9 +208,11 @@ exCategories = None  # If none, dont filter on this
 class TodoItem(object):
     # Every todo item has a description and type
     # If cat/days/date are not given, we do not use or display.
+    # TODO refactor to calc some on demand based on pri?
+    # FIXME pri in init too
     def __init__(self, type, desc, linenum, \
                  category=None, days=None, date=None, wake=None, recur=None):
-        self.type = type  # validation TODO
+        self.type = type.lower()  # validation TODO
         self.linenum = int(linenum)
         self.desc = desc
         self.category = category
@@ -227,11 +229,28 @@ class TodoItem(object):
         else:
             return self.days
 
+    def asTodoLine(self):
+         '''
+         FIXME TODO XXX WIP
+         Returns a canonical todo-file-line for this todo item
+         <type><[priority]> <[date YYYY-MM-DD]> <description with spaces>\n 
+         '''
+         priority = ''  # FIXME fix for most types! - or pass in to class...
+         datestr = self.date.strftime('%Y-%m-%d') if self.date else ''
+         return ''.join(
+            self.type,
+            priority,
+            '\t',
+            datestr,
+            '\t',
+            self.desc,
+         )
+
+    # TODO: decide if above or below should be __str__...
 
     def prettyPrintStr(self, showType=True):
         '''Returns a string representing this todoitem suitable for display to user'''
         # TODO: break long lines for droid?
-        # TODO: Make __str__?
         preamble = ""  # For colours and status
         if useColours:
             if self.days is None:
@@ -253,7 +272,7 @@ class TodoItem(object):
         # add date and days to preamble? XXX
         if self.date is None:
             date = '     '
-        elif self.type == 'a':
+        elif self.type == 'a':   # TODO refactor to strftime the lot
             date = '%02d-%02d %s:' % (self.date.month, \
                                       self.date.day, self.date.strftime('%a'))
         else:
@@ -502,9 +521,15 @@ def parseTodoFile(file):
     # end for line in file
     return ret
 
-def rewriteTodoFile(fname, action, linenum):
+# FIXME rm bump and recur and move to above
+def rewriteTodoFile(fname, action, linenum, recur=None, newline=None):
     """
     rewrites the todo file (safely, to a temp file first), modifying one line.
+    action can be:
+         'bump' - bump a recurring item on that line (must pass in recur)
+         'delete' - delete the line
+         'replace' - FIXME TODO
+         'insert' - FIXME TODO
     """
     linecount = 0
 
@@ -518,8 +543,15 @@ def rewriteTodoFile(fname, action, linenum):
             if linecount != linenum:
                 outfile.write(line)
             else:  # Reached target line
+                if action == 'delete':
+                    pass  # Don't copy to new file
                 if action == 'bump':
-                    pass # FIXME
+                    # FIXME - this would be done better in an outer
+                    # function that handles the porcelain generation of new
+                    # todolines. this one should only handle the
+                    # plumbing of the file and string handling
+                    # rewrite that line FIXME
+                    pass
                 else:
                     print "ERROR: Unknown action %s" % action
                     return None
