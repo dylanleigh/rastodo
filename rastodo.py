@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 #
 # rastodo / rastatodo - text based todo list
-#
-# $Id: rastodo.py 244 2014-08-02 06:42:17Z dleigh $
-# $LastChangedRevision: 244 $
-#
-# Copyright (c) 2004-2014 Dylan Leigh.
+# Copyright (c) 2004-2016 Dylan Leigh.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -124,6 +120,7 @@ a12 2014-06-08 Bob's birthday
 
 '''
 
+# FIXME: Recurring should be added to online docs etc!
 
 # Design notes:
 #
