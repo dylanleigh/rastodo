@@ -124,6 +124,7 @@ a12 2014-06-08 Bob's birthday
 
 '''
 
+# FIXME: Recurring should be added to docs etc!
 
 # Design notes:
 #
@@ -164,7 +165,7 @@ try:
 except (ImportError):
     droid = None  # test on this later for droid vs terminal
 
-
+# FIXME these should be structured!
 # Program defaults and environment variables
 # Constants are in UPPERCASE.
 if droid is None:
@@ -229,6 +230,7 @@ class TodoItem(object):
         else:
             return self.days
 
+    # FIXME: below should be __repr__, or repr should wrap below
     def asTodoLine(self):
          '''
          FIXME TODO XXX WIP
@@ -246,8 +248,7 @@ class TodoItem(object):
             self.desc,
          )
 
-    # TODO: decide if above or below should be __str__...
-
+    # FIXME: below should be __str__...
     def prettyPrintStr(self, showType=True):
         '''Returns a string representing this todoitem suitable for display to user'''
         # TODO: break long lines for droid?
@@ -272,7 +273,7 @@ class TodoItem(object):
         # add date and days to preamble? XXX
         if self.date is None:
             date = '     '
-        elif self.type == 'a':   # TODO refactor to strftime the lot
+        elif self.type == 'a':   # FIXME refactor to strftime the lot
             date = '%02d-%02d %s:' % (self.date.month, \
                                       self.date.day, self.date.strftime('%a'))
         else:
@@ -314,7 +315,6 @@ regexW = re.compile(r'[Ww]\s+(.+)')                               # "wishlist" n
 regexR = re.compile(r'[Rr](\d+)\s+(\d{4}-\d{2}-\d{2})\s+([=+])(\d+)([dwmy])\s+(.+)')  # "Recurring"
 # Recurring r 2016-02-20 +12d add 12 days from today
 # Recurring r 2016-02-20 =1w 1 week from todo date exactly
-# TODO: Implement bump command for recurring items
 
 # TODO: These are not currently implemented
 #regexP = re.compile(r'[Pp]\s+(\d{4}-\d{2}-\d{2})\s+(.+)')         # "Pending"
@@ -469,7 +469,7 @@ def parseTodoLine(line, num, category=None):
 def todoInclude(item):
     '''Returns true if the todo item should be included based on
        the global options. Otherwise returns false.'''
-    # TODO move into class
+    # FIXME TODO move into class
     # Filter items
     if not cliopts.all:
         if item.wake is not None:
@@ -590,7 +590,7 @@ if __name__ == '__main__':
     optparser.add_option('-d', '--days', \
                          help='Days after which item will not be included')
 
-    optparser.add_option('--line-bump', \
+    optparser.add_option('--bump-line', \
                          help='Bump a recurring item (on specified line) to next due date')
     #optparser.add_option('--line-remove', \
     #                     help='Remove the item on specified line')
@@ -633,8 +633,8 @@ if __name__ == '__main__':
     if cliopts.edit:
         os.execlp(EDITOR, "editor", todofname)  # replaces this process
     # If bumping, read the whole file up to the given line
-    if cliopts.line_bump:
-        rewrite_todo_file(todofname, 'bump', cliopts.line_bump)
+    if cliopts.bump_line:
+        rewrite_todo_file(todofname, 'bump', cliopts.bump_line)
 
     # Determine any cutoff dates, categories or types to be
     # excluded beforehand so that we don't include those items when
