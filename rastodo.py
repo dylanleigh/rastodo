@@ -140,11 +140,11 @@ a12 2014-06-08 Bob's birthday
 #
 #
 # For each valid type of item, there must be:
-#  - an entry in default validTypes
+#  - an entry in default VALIDTYPES
 #  - a regex for the line entry
 #  - a section in parseTodoLine for the type
 #
-# TODO: - Priorities setting colours early?
+# TODO: - Settings via env vars
 #       - Handle white backgrounds neatly
 #       - Group by category with original file order
 #       - Better factoring on filter arguments
@@ -161,23 +161,31 @@ try:
 except (ImportError):
     droid = None  # test on this later for droid vs terminal
 
-# FIXME these should be structured!
-# Program defaults and environment variables
-# Constants are in UPPERCASE.
-if droid is None:
-    EDITOR = os.getenv('EDITOR', default='vim')
-    HOMEDIR = os.getenv('HOME')
-    useColours = True
-    twoLines = False
+# Default settings and constants - Constants are in UPPERCASE.
+TODAY = datetime.date.today()
+VALIDTYPES = 'tsacwr'
+settings = {
+   'filter': {
+      #FIXME TODO
+   },
+}
+if droid is None:       # some defaults differ by platform
+   EDITOR = os.getenv('EDITOR', default='vim')
+   DEFAULTTODOFILE = "%s/.todo" % os.getenv('HOME') # Default for help
+   settings['display'] = {
+      'useColours': True,
+      'twoLines': False,
+   }
 else:  # android:
-    EDITOR = ""
-    HOMEDIR = "/sdcard/svncos/dotfiles"
-    useColours = False  # TODO: fix with NON-ansi colours...
-    twoLines = True
-DEFAULTTODOFILE = "%s/.todo" % HOMEDIR  # Default for help
-todofname = DEFAULTTODOFILE
-today = datetime.date.today()
-validTypes = 'tsacwr'
+   EDITOR = ""
+   DEFAULTTODOFILE = "/sdcard/dotfiles/.todo"   # TODO make setting
+   settings['display'] = {
+      'useColours': False,  # TODO: fix with NON-ansi colours...
+      'twoLines': True,
+   }
+settings['global'] = {
+   'todofname': DEFAULTTODOFILE,
+}
 
 # ANSI colours
 # these are all with black background (40)
@@ -194,11 +202,11 @@ ANSI_COLOURS = {
    'normal': "\033[0m"    # 'return to normal' - XXX must use at end of output!
 }
 
-#Filtering items (XXX: defaults)
+#Filtering items (XXX: defaults)    # FIXME filter_options
 daysCutoff = 22  # Days away to display items
 # TODO: different days/types defaults on droid?
 showLines = False
-onlyTypes = validTypes  # ? don't show w items on droid?
+onlyTypes = VALIDTYPES  # ? don't show w items on droid?
 onlyCategories = None  # If none, dont filter on this
 exCategories = None  # If none, dont filter on this
 # if only and ex are specified only use only
@@ -252,7 +260,7 @@ class TodoItem(object):
         '''Returns a string representing this todoitem suitable for display to user'''
         # TODO: break long lines for droid?
         preamble = ""  # For colours and status
-        if useColours:
+        if settings['display']['useColours']:
             if self.days is None:
                 preamble = ANSI_COLOURS['blue']
             elif self.days > 4:
@@ -282,12 +290,12 @@ class TodoItem(object):
         else:
             days = '[%02d]' % self.days
 
-        if twoLines:  # newline before description
+        if settings['display']['twoLines']:  # newline before description
             self.desc = "%s%s" % ('\n', self.desc)
         if self.recur:  # print date of next after desc
             self.desc = "%s [next %s]" % (self.desc, self.recur.isoformat())
 
-        if useColours:
+        if settings['display']['useColours']:
             if self.category is None:
                 return '%s%s %s %s%s' % \
                        (preamble, days, date, self.desc, ANSI_COLOURS['normal'])
@@ -338,7 +346,7 @@ def parseTodoLine(line, num, category=None):
         if mat:
             date = parseISODate(mat.group(1))
             desc = mat.group(2)
-            days = (date - today).days
+            days = (date - TODAY).days
             return TodoItem(
                 't',
                 desc,
@@ -356,7 +364,7 @@ def parseTodoLine(line, num, category=None):
             wake = int(mat.group(1))
             date = parseISODate(mat.group(2))
             desc = mat.group(3)
-            days = (date - today).days
+            days = (date - TODAY).days
             return TodoItem(
                 's',
                 desc,
@@ -375,7 +383,7 @@ def parseTodoLine(line, num, category=None):
             wake = int(mat.group(1))
             date = parseISODate(mat.group(2))
             desc = mat.group(3)
-            days = (date - today).days
+            days = (date - TODAY).days
             return TodoItem(
                 'a',
                 desc,
@@ -426,7 +434,7 @@ def parseTodoLine(line, num, category=None):
             recurunit = mat.group(5)
             desc = mat.group(6)
 
-            days = (date - today).days
+            days = (date - TODAY).days
 
             # Find time of next event
             if recurunit == 'd':
@@ -444,7 +452,7 @@ def parseTodoLine(line, num, category=None):
             if recurtype == '=':
                 nextdate = date + datedelta
             elif recurtype == '+':
-                nextdate = datetime.date.today() + datedelta
+                nextdate = TODAY + datedelta
             else:
                 return None
 
@@ -560,7 +568,7 @@ def rewriteTodoFile(fname, action, linenum, recur=None, newline=None):
 
 if __name__ == '__main__':
     # Parse commandline arguments
-    optparser = optparse.OptionParser()
+    optparser = optparse.OptionParser()      # TODO: optparser is deprecated :(
 
     optparser.add_option('-f', '--file', \
                          help='File to parse (defaults to %s)' % DEFAULTTODOFILE)
@@ -622,7 +630,8 @@ if __name__ == '__main__':
 
     # Check file argument second
     if cliopts.file:
-        todofname = cliopts.file
+        settings['global']['todofname'] = cliopts.file
+    todofname = settings['global']['todofname']
     if not os.access(todofname, os.F_OK):
         sys.exit("%s does not exist; use the -f option to specify a todo file" % todofname)
     if not os.access(todofname, os.R_OK):
@@ -673,9 +682,9 @@ if __name__ == '__main__':
 
     # Misc display options
     if cliopts.two_lines:
-        twoLines = True
+        settings['display']['twoLines'] = True
     if cliopts.monochrome:
-        useColours = False
+        settings['display']['useColours'] = False
 
     # Display items
     if droid is None:
