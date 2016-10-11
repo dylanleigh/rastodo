@@ -169,7 +169,8 @@ settings = {
       #FIXME TODO
    },
 }
-if droid is None:       # some defaults differ by platform
+# File and display settings - these differ by platform
+if droid is None:
    EDITOR = os.getenv('EDITOR', default='vim')
    DEFAULTTODOFILE = "%s/.todo" % os.getenv('HOME') # Default for help
    settings['display'] = {
@@ -181,10 +182,10 @@ else:  # android:
    DEFAULTTODOFILE = "/sdcard/dotfiles/.todo"   # TODO make setting
    settings['display'] = {
       'useColours': False,  # TODO: fix with NON-ansi colours...
-      'twoLines': True,
+      'twoLines': True,    # FIXME camelCase -> under_score
    }
-settings['global'] = {
-   'todofname': DEFAULTTODOFILE,
+settings['paths'] = {
+   'todopath': DEFAULTTODOFILE,
 }
 
 # ANSI colours
@@ -212,7 +213,6 @@ exCategories = None  # If none, dont filter on this
 # if only and ex are specified only use only
 
 
-# Classes
 class TodoItem(object):
     # Every todo item has a description and type
     # If cat/days/date are not given, we do not use or display.
@@ -630,19 +630,19 @@ if __name__ == '__main__':
 
     # Check file argument second
     if cliopts.file:
-        settings['global']['todofname'] = cliopts.file
-    todofname = settings['global']['todofname']
-    if not os.access(todofname, os.F_OK):
-        sys.exit("%s does not exist; use the -f option to specify a todo file" % todofname)
-    if not os.access(todofname, os.R_OK):
-        sys.exit("%s is not readable." % todofname)
+        settings['paths']['todopath'] = cliopts.file
+    todopath = settings['paths']['todopath']
+    if not os.access(todopath, os.F_OK):
+        sys.exit("%s does not exist; use the -f option to specify a todo file" % todopath)
+    if not os.access(todopath, os.R_OK):
+        sys.exit("%s is not readable." % todopath)
 
     # If edit mode, send to defined editor, replacing this process
     if cliopts.edit:
-        os.execlp(EDITOR, "editor", todofname)  # replaces this process
+        os.execlp(EDITOR, "editor", todopath)  # replaces this process
     # If bumping, read the whole file up to the given line
     if cliopts.bump_line:
-        rewrite_todo_file(todofname, 'bump', cliopts.bump_line)
+        rewrite_todo_file(todopath, 'bump', cliopts.bump_line)
 
     # Determine any cutoff dates, categories or types to be
     # excluded beforehand so that we don't include those items when
@@ -667,7 +667,7 @@ if __name__ == '__main__':
     showLines = True if cliopts.line_numbers else False
 
     # Open the file and give it to the parsing function.
-    todoFile = open(todofname)
+    todoFile = open(todopath)
     todoList = parseTodoFile(todoFile)
     todoFile.close()
 
