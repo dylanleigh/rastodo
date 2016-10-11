@@ -182,13 +182,15 @@ validTypes = 'tsacwr'
 # ANSI colours
 # these are all with black background (40)
 ANSI_COLOURS = {
-   'red': "\033[0;31m",       # fairly dull
-   'green': "\033[0;32m",     # fairly bright
+   'red': "\033[0;31m",       # dull
+   'green': "\033[0;32m",     # bright enough
    'yellow': "\033[0;33m",    # more orange than yellow
    'blue': "\033[0;34m",      # dull
    'magenta': "\033[0;35m",   # fairly dull
-   'cyan': "\033[0;36m",
+   'cyan': "\033[0;36m",      # TODO: Would be neat to make use of this...
    'white': "\033[0;37m",     # bright
+   'boldred': "\033[0;31;1m",
+   'boldmagenta': "\033[0;35;1m",
    'normal': "\033[0m"    # 'return to normal' - XXX must use at end of output!
 }
 
@@ -256,11 +258,11 @@ class TodoItem(object):
             elif self.days > 4:
                 preamble = ANSI_COLOURS['green']
             elif self.days > 0:
-                preamble = ANSI_COLOURS['cyan']
-            elif self.days == 0:
                 preamble = ANSI_COLOURS['yellow']
+            elif self.days == 0:
+                preamble = ANSI_COLOURS['boldmagenta']
             else:
-                preamble = ANSI_COLOURS['magenta']
+                preamble = ANSI_COLOURS['boldred']
 
         if showLines:  # If set, line numbers should be first
             preamble = "%s%03d " % (preamble, self.linenum)
