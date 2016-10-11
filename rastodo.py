@@ -181,15 +181,16 @@ validTypes = 'tsacwr'
 
 # ANSI colours
 # these are all with black background (40)
-ANSI_RED = "\033[0;31m"
-ANSI_GREEN = "\033[0;32m"
-ANSI_YELLOW = "\033[0;33m"
-ANSI_BLUE = "\033[0;34m"
-ANSI_MAGENTA = "\033[0;35m"
-ANSI_CYAN = "\033[0;36m"
-ANSI_WHITE = "\033[0;37m"
-# return to normal - use at end of output!
-ANSI_NORMAL = "\033[0m"
+ANSI_COLOURS = {
+   'red': "\033[0;31m",       # fairly dull
+   'green': "\033[0;32m",     # fairly bright
+   'yellow': "\033[0;33m",    # more orange than yellow
+   'blue': "\033[0;34m",      # dull
+   'magenta': "\033[0;35m",   # fairly dull
+   'cyan': "\033[0;36m",
+   'white': "\033[0;37m",     # bright
+   'normal': "\033[0m"    # 'return to normal' - XXX must use at end of output!
+}
 
 #Filtering items (XXX: defaults)
 daysCutoff = 22  # Days away to display items
@@ -251,18 +252,18 @@ class TodoItem(object):
         preamble = ""  # For colours and status
         if useColours:
             if self.days is None:
-                preamble = ANSI_BLUE
+                preamble = ANSI_COLOURS['blue']
             elif self.days > 4:
-                preamble = ANSI_GREEN
+                preamble = ANSI_COLOURS['green']
             elif self.days > 0:
-                preamble = ANSI_YELLOW
+                preamble = ANSI_COLOURS['cyan']
             elif self.days == 0:
-                preamble = ANSI_MAGENTA
+                preamble = ANSI_COLOURS['yellow']
             else:
-                preamble = ANSI_RED
+                preamble = ANSI_COLOURS['magenta']
 
         if showLines:  # If set, line numbers should be first
-            preamble = "%03d %s" % (self.linenum, preamble)
+            preamble = "%s%03d " % (preamble, self.linenum)
         if showType:  # show the type of the entry
             preamble = "%s%s " % (preamble, self.type)
 
@@ -287,10 +288,10 @@ class TodoItem(object):
         if useColours:
             if self.category is None:
                 return '%s%s %s %s%s' % \
-                       (preamble, days, date, self.desc, ANSI_NORMAL)
+                       (preamble, days, date, self.desc, ANSI_COLOURS['normal'])
             else:
                 return '%s%s %s [%s] %s%s' % (preamble, days, \
-                                              date, self.category, self.desc, ANSI_NORMAL)
+                                              date, self.category, self.desc, ANSI_COLOURS['normal'])
         else:
             if self.category is None:
                 return '%s%s %s %s' % \
