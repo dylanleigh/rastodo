@@ -165,11 +165,18 @@ except (ImportError):
 # Default settings and constants - Constants are in UPPERCASE.
 TODAY = datetime.date.today()
 VALIDTYPES = 'tsacwr'
-settings = {
-   'filter': {
-      #FIXME TODO
-   },
-}
+
+class FilterSettings(object):
+   # TODO: different days/types defaults on droid?
+   days_cutoff = 22  # If due later than this, will not be shown
+   show_line_nums = False  # FIXME display settings
+   only_types = VALIDTYPES
+   only_categories = None
+   exclude_categories = None  # NB: if both only and ex are specified only use only
+filter_settings = FilterSettings()
+
+settings = {}  # FIXME ^^^
+
 # File and display settings - these differ by platform
 if droid is None:
    EDITOR = os.getenv('EDITOR', default='vim')
@@ -183,7 +190,7 @@ else:  # android:
    DEFAULTTODOFILE = "/sdcard/dotfiles/.todo"   # TODO make setting
    settings['display'] = {
       'use_colours': False,  # TODO: fix with NON-ansi colours...
-      'two_lines': True,    # FIXME camelCase -> under_score
+      'two_lines': True,
    }
 settings['paths'] = {
    'todopath': DEFAULTTODOFILE,
@@ -203,15 +210,6 @@ ANSI_COLOURS = {
    'boldmagenta': "\033[0;35;1m",
    'normal': "\033[0m"    # 'return to normal' - XXX must use at end of output!
 }
-
-#Filtering items (XXX: defaults)    # FIXME filter_options
-daysCutoff = 22  # Days away to display items
-# TODO: different days/types defaults on droid?
-showLines = False
-onlyTypes = VALIDTYPES  # ? don't show w items on droid?
-onlyCategories = None  # If none, dont filter on this
-exCategories = None  # If none, dont filter on this
-# if only and ex are specified only use only
 
 
 class TodoItem(object):
@@ -234,7 +232,7 @@ class TodoItem(object):
         # for wishlist items without a date, fudges days = the
         # cutoff so they are filtered and sorted properly.
         if self.days is None:
-            return daysCutoff
+            return filter_settings.days_cutoff
         else:
             return self.days
 
@@ -273,7 +271,7 @@ class TodoItem(object):
             else:
                 preamble = ANSI_COLOURS['boldred']
 
-        if showLines:  # If set, line numbers should be first
+        if filter_settings.show_line_nums:  # If set, line numbers should be first
             preamble = "%s%03d " % (preamble, self.linenum)
         if showType:  # show the type of the entry
             preamble = "%s%s " % (preamble, self.type)
@@ -483,20 +481,20 @@ def todoInclude(item):
         if item.wake is not None:
             if item.wake < item.daysAway():
                 return False
-        if item.daysAway() > daysCutoff:
+        if item.daysAway() > filter_settings.days_cutoff:
             return False
 
         # type of item
-        if onlyTypes.find(item.type) == -1:
+        if filter_settings.only_types.find(item.type) == -1:
             return False
 
         # category
-        if onlyCategories is not None:
-            if item.category not in onlyCategories:
+        if filter_settings.only_categories is not None:
+            if item.category not in filter_settings.only_categories:
                 return False
         else:
-            if exCategories is not None:
-                if item.category in exCategories:
+            if filter_settings.exclude_categories is not None:
+                if item.category in filter_settings.exclude_categories:
                     return False
 
     # end if not cliopts.all
@@ -649,23 +647,23 @@ if __name__ == '__main__':
     # excluded beforehand so that we don't include those items when
     # loading from the file. XXX
     if cliopts.days:
-        daysCutoff = int(cliopts.days)
+        filter_settings.days_cutoff = int(cliopts.days)
 
     if cliopts.only_cat:
-        onlyCategories = cliopts.only_cat.split(',')
+        filter_settings.only_categories = cliopts.only_cat.split(',')
     else:
         if cliopts.ex_cat:
-            exCategories = cliopts.ex_cat.split(',')
+            filter_settings.exclude_categories = cliopts.ex_cat.split(',')
 
     if cliopts.only_types:
-        onlyTypes = cliopts.only_types
+        filter_settings.only_types = cliopts.only_types
     else:
         if cliopts.ex_types:
             for type in cliopts.ex_types:
-                onlyTypes = onlyTypes.replace(type, '')
+                filter_settings.only_types = filter_settings.only_types.replace(type, '')
     # end if only types
 
-    showLines = True if cliopts.line_numbers else False
+    filter_settings.show_line_nums = True if cliopts.line_numbers else False
 
     # Open the file and give it to the parsing function.
     todoFile = open(todopath)
