@@ -149,6 +149,7 @@ a12 2014-06-08 Bob's birthday
 #       - Group by category with original file order
 #       - Better factoring on filter arguments
 #       - Implement p (pending) and f (followup) items
+#       - --count or --stats options
 
 
 import os, sys, re, optparse
@@ -174,15 +175,15 @@ if droid is None:
    EDITOR = os.getenv('EDITOR', default='vim')
    DEFAULTTODOFILE = "%s/.todo" % os.getenv('HOME') # Default for help
    settings['display'] = {
-      'useColours': True,
-      'twoLines': False,
+      'use_colours': True,
+      'two_lines': False,
    }
 else:  # android:
    EDITOR = ""
    DEFAULTTODOFILE = "/sdcard/dotfiles/.todo"   # TODO make setting
    settings['display'] = {
-      'useColours': False,  # TODO: fix with NON-ansi colours...
-      'twoLines': True,    # FIXME camelCase -> under_score
+      'use_colours': False,  # TODO: fix with NON-ansi colours...
+      'two_lines': True,    # FIXME camelCase -> under_score
    }
 settings['paths'] = {
    'todopath': DEFAULTTODOFILE,
@@ -260,7 +261,7 @@ class TodoItem(object):
         '''Returns a string representing this todoitem suitable for display to user'''
         # TODO: break long lines for droid?
         preamble = ""  # For colours and status
-        if settings['display']['useColours']:
+        if settings['display']['use_colours']:
             if self.days is None:
                 preamble = ANSI_COLOURS['blue']
             elif self.days > 4:
@@ -290,12 +291,12 @@ class TodoItem(object):
         else:
             days = '[%02d]' % self.days
 
-        if settings['display']['twoLines']:  # newline before description
+        if settings['display']['two_lines']:  # newline before description
             self.desc = "%s%s" % ('\n', self.desc)
         if self.recur:  # print date of next after desc
             self.desc = "%s [next %s]" % (self.desc, self.recur.isoformat())
 
-        if settings['display']['useColours']:
+        if settings['display']['use_colours']:
             if self.category is None:
                 return '%s%s %s %s%s' % \
                        (preamble, days, date, self.desc, ANSI_COLOURS['normal'])
@@ -682,9 +683,9 @@ if __name__ == '__main__':
 
     # Misc display options
     if cliopts.two_lines:
-        settings['display']['twoLines'] = True
+        settings['display']['two_lines'] = True
     if cliopts.monochrome:
-        settings['display']['useColours'] = False
+        settings['display']['use_colours'] = False
 
     # Display items
     if droid is None:
