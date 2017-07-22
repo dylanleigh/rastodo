@@ -1,7 +1,6 @@
 # rastodo
-Rastatodo console/Android text based TODO app
 
-http://dylanleigh.net/software/rastodo/
+Console / Android flat text file based TODO app
 
 # Overview
 
