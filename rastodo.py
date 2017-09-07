@@ -106,6 +106,8 @@ a12 2014-06-08 Bob's birthday
  r - Recurring - Priority the same as sleeping items, and has an extra
                  '+nx'/'=nx' entry after the date.
                  The x is d (days), w (weeks), m (months) or y (years)
+                 These items can be bumped on the commandline/GUI to update
+                 the due date by the given period of time.
                  If + the bump will be relative to the current date; if = it will be
                  relative to the old due date.
 
@@ -234,6 +236,24 @@ class TodoItem(object):
             return filter_settings.days_cutoff
         else:
             return self.days
+
+    # FIXME: below should be __repr__, or repr should wrap below
+    def asTodoLine(self):
+         '''
+         FIXME TODO XXX WIP
+         Returns a canonical todo-file-line for this todo item
+         <type><[priority]> <[date YYYY-MM-DD]> <description with spaces>\n 
+         '''
+         priority = ''  # FIXME fix for most types! - or pass in to class...
+         datestr = self.date.strftime('%Y-%m-%d') if self.date else ''
+         return ''.join(
+            self.type,
+            priority,
+            '\t',
+            datestr,
+            '\t',
+            self.desc,
+         )
 
     # FIXME: below should be __str__...
     def prettyPrintStr(self, showType=True):
@@ -508,6 +528,43 @@ def parseTodoFile(file):
     # end for line in file
     return ret
 
+# FIXME rm bump and recur and move to above
+def rewriteTodoFile(fname, action, linenum, recur=None, newline=None):
+    """
+    rewrites the todo file (safely, to a temp file first), modifying one line.
+    action can be:
+         'bump' - bump a recurring item on that line (must pass in recur)
+         'delete' - delete the line
+         'replace' - FIXME TODO
+         'insert' - FIXME TODO
+    """
+    linecount = 0
+
+    # Before opening the new file make sure the arguments are valid TODO
+
+    outfile = NamedTemporaryFile()  # FIXME
+
+    with open(fname) as infile:
+        for line in infile:
+            linecount += 1
+            if linecount != linenum:
+                outfile.write(line)
+            else:  # Reached target line
+                if action == 'delete':
+                    pass  # Don't copy to new file
+                if action == 'bump':
+                    # FIXME - this would be done better in an outer
+                    # function that handles the porcelain generation of new
+                    # todolines. this one should only handle the
+                    # plumbing of the file and string handling
+                    # rewrite that line FIXME
+                    pass
+                else:
+                    print "ERROR: Unknown action %s" % action
+                    return None
+
+    # TODO: Copy outfile over old file name
+
 
 if __name__ == '__main__':
     # Parse commandline arguments
@@ -539,6 +596,13 @@ if __name__ == '__main__':
                          help='Shows all items, regardless of date and filtering')
     optparser.add_option('-d', '--days', \
                          help='Days after which item will not be included')
+
+    optparser.add_option('--bump-line', \
+                         help='Bump a recurring item (on specified line) to next due date')
+    #optparser.add_option('--line-remove', \
+    #                     help='Remove the item on specified line')
+    #optparser.add_option('--line-edit', \
+    #                     help='Edit specified line')
 
     # Don't use store_const for only-types for if-else later XXX
     optparser.add_option('--only-types', \
