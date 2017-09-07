@@ -106,8 +106,6 @@ a12 2014-06-08 Bob's birthday
  r - Recurring - Priority the same as sleeping items, and has an extra
                  '+nx'/'=nx' entry after the date.
                  The x is d (days), w (weeks), m (months) or y (years)
-                 These items can be bumped on the commandline/GUI to update
-                 the due date by the given period of time.
                  If + the bump will be relative to the current date; if = it will be
                  relative to the old due date.
 
@@ -140,17 +138,18 @@ a12 2014-06-08 Bob's birthday
 #
 #
 # For each valid type of item, there must be:
-#  - an entry in default validTypes
+#  - an entry in default VALIDTYPES
 #  - a regex for the line entry
 #  - a section in parseTodoLine for the type
 #
-# TODO: - Use linecache when reading single lines
+# TODO: - Settings via env vars
+#       - Use linecache when reading single lines
 #       - Handle white backgrounds neatly
 #       - Group by category with original file order
 #       - Better factoring on filter arguments
 #       - Implement p (pending) and f (followup) items
+#       - --count or --stats options
 #       - Priorities setting colours early?
-
 
 import os, sys, re, optparse
 import datetime
@@ -162,53 +161,64 @@ try:
 except (ImportError):
     droid = None  # test on this later for droid vs terminal
 
+# Default settings and constants - Constants are in UPPERCASE.
+TODAY = datetime.date.today()
+VALIDTYPES = 'tsacwr'
 
-# Program defaults and environment variables
-# Constants are in UPPERCASE.
+class FilterSettings(object):
+   # TODO: different days/types defaults on droid?
+   days_cutoff = 22  # If due later than this, will not be shown
+   show_line_nums = False  # FIXME display settings
+   only_types = VALIDTYPES
+   only_categories = None
+   exclude_categories = None  # NB: if both only and ex are specified only use only
+filter_settings = FilterSettings()
+
+settings = {}  # FIXME ^^^
+
+# File and display settings - these differ by platform
 if droid is None:
-    EDITOR = os.getenv('EDITOR', default='vim')
-    HOMEDIR = os.getenv('HOME')
-    useColours = True
-    twoLines = False
+   EDITOR = os.getenv('EDITOR', default='vim')
+   DEFAULTTODOFILE = "%s/.todo" % os.getenv('HOME') # Default for help
+   settings['display'] = {
+      'use_colours': True,
+      'two_lines': False,
+   }
 else:  # android:
-    EDITOR = ""
-    HOMEDIR = "/sdcard/svncos/dotfiles"
-    useColours = False  # TODO: fix with NON-ansi colours...
-    twoLines = True
-DEFAULTTODOFILE = "%s/.todo" % HOMEDIR  # Default for help
-todofname = DEFAULTTODOFILE
-today = datetime.date.today()
-validTypes = 'tsacwr'
+   EDITOR = ""
+   DEFAULTTODOFILE = "/sdcard/dotfiles/.todo"   # TODO make setting
+   settings['display'] = {
+      'use_colours': False,  # TODO: fix with NON-ansi colours...
+      'two_lines': True,
+   }
+settings['paths'] = {
+   'todopath': DEFAULTTODOFILE,
+}
 
 # ANSI colours
 # these are all with black background (40)
-ANSI_RED = "\033[0;31m"
-ANSI_GREEN = "\033[0;32m"
-ANSI_YELLOW = "\033[0;33m"
-ANSI_BLUE = "\033[0;34m"
-ANSI_MAGENTA = "\033[0;35m"
-ANSI_CYAN = "\033[0;36m"
-ANSI_WHITE = "\033[0;37m"
-# return to normal - use at end of output!
-ANSI_NORMAL = "\033[0m"
-
-#Filtering items (XXX: defaults)
-daysCutoff = 22  # Days away to display items
-# TODO: different days/types defaults on droid?
-showLines = False
-onlyTypes = validTypes  # ? don't show w items on droid?
-onlyCategories = None  # If none, dont filter on this
-exCategories = None  # If none, dont filter on this
-# if only and ex are specified only use only
+ANSI_COLOURS = {
+   'red': "\033[0;31m",       # dull
+   'green': "\033[0;32m",     # bright enough
+   'yellow': "\033[0;33m",    # more orange than yellow
+   'blue': "\033[0;34m",      # dull
+   'magenta': "\033[0;35m",   # fairly dull
+   'cyan': "\033[0;36m",      # TODO: Would be neat to make use of this...
+   'white': "\033[0;37m",     # bright
+   'boldred': "\033[0;31;1m",
+   'boldmagenta': "\033[0;35;1m",
+   'normal': "\033[0m"    # 'return to normal' - XXX must use at end of output!
+}
 
 
-# Classes
 class TodoItem(object):
     # Every todo item has a description and type
     # If cat/days/date are not given, we do not use or display.
+    # TODO refactor to calc some on demand based on pri?
+    # FIXME pri in init too
     def __init__(self, type, desc, linenum, \
                  category=None, days=None, date=None, wake=None, recur=None):
-        self.type = type  # validation TODO
+        self.type = type.lower()  # validation TODO
         self.linenum = int(linenum)
         self.desc = desc
         self.category = category
@@ -221,37 +231,36 @@ class TodoItem(object):
         # for wishlist items without a date, fudges days = the
         # cutoff so they are filtered and sorted properly.
         if self.days is None:
-            return daysCutoff
+            return filter_settings.days_cutoff
         else:
             return self.days
 
-
+    # FIXME: below should be __str__...
     def prettyPrintStr(self, showType=True):
         '''Returns a string representing this todoitem suitable for display to user'''
         # TODO: break long lines for droid?
-        # TODO: Make __str__?
         preamble = ""  # For colours and status
-        if useColours:
+        if settings['display']['use_colours']:
             if self.days is None:
-                preamble = ANSI_BLUE
+                preamble = ANSI_COLOURS['blue']
             elif self.days > 4:
-                preamble = ANSI_GREEN
+                preamble = ANSI_COLOURS['green']
             elif self.days > 0:
-                preamble = ANSI_YELLOW
+                preamble = ANSI_COLOURS['yellow']
             elif self.days == 0:
-                preamble = ANSI_MAGENTA
+                preamble = ANSI_COLOURS['boldmagenta']
             else:
-                preamble = ANSI_RED
+                preamble = ANSI_COLOURS['boldred']
 
-        if showLines:  # If set, line numbers should be first
-            preamble = "%03d %s" % (self.linenum, preamble)
+        if filter_settings.show_line_nums:  # If set, line numbers should be first
+            preamble = "%s%03d " % (preamble, self.linenum)
         if showType:  # show the type of the entry
             preamble = "%s%s " % (preamble, self.type)
 
         # add date and days to preamble? XXX
         if self.date is None:
             date = '     '
-        elif self.type == 'a':
+        elif self.type == 'a':   # FIXME refactor to strftime the lot
             date = '%02d-%02d %s:' % (self.date.month, \
                                       self.date.day, self.date.strftime('%a'))
         else:
@@ -261,18 +270,18 @@ class TodoItem(object):
         else:
             days = '[%02d]' % self.days
 
-        if twoLines:  # newline before description
+        if settings['display']['two_lines']:  # newline before description
             self.desc = "%s%s" % ('\n', self.desc)
         if self.recur:  # print date of next after desc
             self.desc = "%s [next %s]" % (self.desc, self.recur.isoformat())
 
-        if useColours:
+        if settings['display']['use_colours']:
             if self.category is None:
                 return '%s%s %s %s%s' % \
-                       (preamble, days, date, self.desc, ANSI_NORMAL)
+                       (preamble, days, date, self.desc, ANSI_COLOURS['normal'])
             else:
                 return '%s%s %s [%s] %s%s' % (preamble, days, \
-                                              date, self.category, self.desc, ANSI_NORMAL)
+                                              date, self.category, self.desc, ANSI_COLOURS['normal'])
         else:
             if self.category is None:
                 return '%s%s %s %s' % \
@@ -293,7 +302,6 @@ regexW = re.compile(r'[Ww]\s+(.+)')                               # "wishlist" n
 regexR = re.compile(r'[Rr](\d+)\s+(\d{4}-\d{2}-\d{2})\s+([=+])(\d+)([dwmy])\s+(.+)')  # "Recurring"
 # Recurring r 2016-02-20 +12d add 12 days from today
 # Recurring r 2016-02-20 =1w 1 week from todo date exactly
-# TODO: Implement bump command for recurring items
 
 # TODO: These are not currently implemented
 #regexP = re.compile(r'[Pp]\s+(\d{4}-\d{2}-\d{2})\s+(.+)')         # "Pending"
@@ -318,7 +326,7 @@ def parseTodoLine(line, num, category=None):
         if mat:
             date = parseISODate(mat.group(1))
             desc = mat.group(2)
-            days = (date - today).days
+            days = (date - TODAY).days
             return TodoItem(
                 't',
                 desc,
@@ -336,7 +344,7 @@ def parseTodoLine(line, num, category=None):
             wake = int(mat.group(1))
             date = parseISODate(mat.group(2))
             desc = mat.group(3)
-            days = (date - today).days
+            days = (date - TODAY).days
             return TodoItem(
                 's',
                 desc,
@@ -355,7 +363,7 @@ def parseTodoLine(line, num, category=None):
             wake = int(mat.group(1))
             date = parseISODate(mat.group(2))
             desc = mat.group(3)
-            days = (date - today).days
+            days = (date - TODAY).days
             return TodoItem(
                 'a',
                 desc,
@@ -406,7 +414,7 @@ def parseTodoLine(line, num, category=None):
             recurunit = mat.group(5)
             desc = mat.group(6)
 
-            days = (date - today).days
+            days = (date - TODAY).days
 
             # Find time of next event
             if recurunit == 'd':
@@ -424,7 +432,7 @@ def parseTodoLine(line, num, category=None):
             if recurtype == '=':
                 nextdate = date + datedelta
             elif recurtype == '+':
-                nextdate = datetime.date.today() + datedelta
+                nextdate = TODAY + datedelta
             else:
                 return None
 
@@ -448,26 +456,26 @@ def parseTodoLine(line, num, category=None):
 def todoInclude(item):
     '''Returns true if the todo item should be included based on
        the global options. Otherwise returns false.'''
-    # TODO move into class
+    # FIXME TODO move into class
     # Filter items
     if not cliopts.all:
         if item.wake is not None:
             if item.wake < item.daysAway():
                 return False
-        if item.daysAway() > daysCutoff:
+        if item.daysAway() > filter_settings.days_cutoff:
             return False
 
         # type of item
-        if onlyTypes.find(item.type) == -1:
+        if filter_settings.only_types.find(item.type) == -1:
             return False
 
         # category
-        if onlyCategories is not None:
-            if item.category not in onlyCategories:
+        if filter_settings.only_categories is not None:
+            if item.category not in filter_settings.only_categories:
                 return False
         else:
-            if exCategories is not None:
-                if item.category in exCategories:
+            if filter_settings.exclude_categories is not None:
+                if item.category in filter_settings.exclude_categories:
                     return False
 
     # end if not cliopts.all
@@ -503,7 +511,7 @@ def parseTodoFile(file):
 
 if __name__ == '__main__':
     # Parse commandline arguments
-    optparser = optparse.OptionParser()
+    optparser = optparse.OptionParser()      # TODO: optparser is deprecated :(
 
     optparser.add_option('-f', '--file', \
                          help='File to parse (defaults to %s)' % DEFAULTTODOFILE)
@@ -532,9 +540,6 @@ if __name__ == '__main__':
     optparser.add_option('-d', '--days', \
                          help='Days after which item will not be included')
 
-    optparser.add_option('-b', '--bump', \
-                         help='Bump a recurring item (on specified line) to next due date')
-
     # Don't use store_const for only-types for if-else later XXX
     optparser.add_option('--only-types', \
                          help='Only include these types (string of letters)')
@@ -553,47 +558,52 @@ if __name__ == '__main__':
     (cliopts, cliargs) = optparser.parse_args()
     # XXX: optparser has cyclic refs - destroy ?
 
+    # TODO: Break up below into functions!
+
     # Check term option first
     if cliopts.terminal:
         droid = None
 
     # Check file argument second
     if cliopts.file:
-        todofname = cliopts.file
-    if not os.access(todofname, os.F_OK):
-        sys.exit("%s does not exist; use the -f option to specify a todo file" % todofname)
-    if not os.access(todofname, os.R_OK):
-        sys.exit("%s is not readable." % todofname)
+        settings['paths']['todopath'] = cliopts.file
+    todopath = settings['paths']['todopath']
+    if not os.access(todopath, os.F_OK):
+        sys.exit("%s does not exist; use the -f option to specify a todo file" % todopath)
+    if not os.access(todopath, os.R_OK):
+        sys.exit("%s is not readable." % todopath)
 
     # If edit mode, send to defined editor, replacing this process
     if cliopts.edit:
-        os.execlp(EDITOR, "editor", todofname)  # replaces this process
-    # If bumping, TODO
+        os.execlp(EDITOR, "editor", todopath)  # replaces this process
+    # If bumping, read the whole file up to the given line
+    if cliopts.bump_line:
+        rewrite_todo_file(todopath, 'bump', cliopts.bump_line)
 
     # Determine any cutoff dates, categories or types to be
     # excluded beforehand so that we don't include those items when
     # loading from the file. XXX
     if cliopts.days:
-        daysCutoff = int(cliopts.days)
+        filter_settings.days_cutoff = int(cliopts.days)
 
     if cliopts.only_cat:
-        onlyCategories = cliopts.only_cat.split(',')
+        filter_settings.only_categories = cliopts.only_cat.split(',')
     else:
         if cliopts.ex_cat:
-            exCategories = cliopts.ex_cat.split(',')
+            filter_settings.exclude_categories = cliopts.ex_cat.split(',')
 
     if cliopts.only_types:
-        onlyTypes = cliopts.only_types
+        filter_settings.only_types = cliopts.only_types
     else:
         if cliopts.ex_types:
             for type in cliopts.ex_types:
-                onlyTypes = onlyTypes.replace(type, '')
+                filter_settings.only_types = filter_settings.only_types.replace(type, '')
     # end if only types
 
-    showLines = True if cliopts.line_numbers else False
+    filter_settings.show_line_nums = True if cliopts.line_numbers else False
 
     # Open the file and give it to the parsing function.
-    todoFile = open(todofname)
+    todoFile = open(todopath)
     todoList = parseTodoFile(todoFile)
     todoFile.close()
 
@@ -608,9 +618,9 @@ if __name__ == '__main__':
 
     # Misc display options
     if cliopts.two_lines:
-        twoLines = True
+        settings['display']['two_lines'] = True
     if cliopts.monochrome:
-        useColours = False
+        settings['display']['use_colours'] = False
 
     # Display items
     if droid is None:
