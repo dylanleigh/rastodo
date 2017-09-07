@@ -145,12 +145,13 @@ a12 2014-06-08 Bob's birthday
 #  - a section in parseTodoLine for the type
 #
 # TODO: - Settings via env vars
+#       - Use linecache when reading single lines
 #       - Handle white backgrounds neatly
 #       - Group by category with original file order
 #       - Better factoring on filter arguments
 #       - Implement p (pending) and f (followup) items
 #       - --count or --stats options
-
+#       - Priorities setting colours early?
 
 import os, sys, re, optparse
 import datetime
