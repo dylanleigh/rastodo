@@ -106,8 +106,6 @@ a12 2014-06-08 Bob's birthday
  r - Recurring - Priority the same as sleeping items, and has an extra
                  '+nx'/'=nx' entry after the date.
                  The x is d (days), w (weeks), m (months) or y (years)
-                 These items can be bumped on the commandline/GUI to update
-                 the due date by the given period of time.
                  If + the bump will be relative to the current date; if = it will be
                  relative to the old due date.
 
@@ -541,13 +539,6 @@ if __name__ == '__main__':
                          help='Shows all items, regardless of date and filtering')
     optparser.add_option('-d', '--days', \
                          help='Days after which item will not be included')
-
-    optparser.add_option('--bump-line', \
-                         help='Bump a recurring item (on specified line) to next due date')
-    #optparser.add_option('--line-remove', \
-    #                     help='Remove the item on specified line')
-    #optparser.add_option('--line-edit', \
-    #                     help='Edit specified line')
 
     # Don't use store_const for only-types for if-else later XXX
     optparser.add_option('--only-types', \
