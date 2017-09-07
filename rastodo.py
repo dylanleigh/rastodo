@@ -237,24 +237,6 @@ class TodoItem(object):
         else:
             return self.days
 
-    # FIXME: below should be __repr__, or repr should wrap below
-    def asTodoLine(self):
-         '''
-         FIXME TODO XXX WIP
-         Returns a canonical todo-file-line for this todo item
-         <type><[priority]> <[date YYYY-MM-DD]> <description with spaces>\n 
-         '''
-         priority = ''  # FIXME fix for most types! - or pass in to class...
-         datestr = self.date.strftime('%Y-%m-%d') if self.date else ''
-         return ''.join(
-            self.type,
-            priority,
-            '\t',
-            datestr,
-            '\t',
-            self.desc,
-         )
-
     # FIXME: below should be __str__...
     def prettyPrintStr(self, showType=True):
         '''Returns a string representing this todoitem suitable for display to user'''
@@ -527,43 +509,6 @@ def parseTodoFile(file):
 
     # end for line in file
     return ret
-
-# FIXME rm bump and recur and move to above
-def rewriteTodoFile(fname, action, linenum, recur=None, newline=None):
-    """
-    rewrites the todo file (safely, to a temp file first), modifying one line.
-    action can be:
-         'bump' - bump a recurring item on that line (must pass in recur)
-         'delete' - delete the line
-         'replace' - FIXME TODO
-         'insert' - FIXME TODO
-    """
-    linecount = 0
-
-    # Before opening the new file make sure the arguments are valid TODO
-
-    outfile = NamedTemporaryFile()  # FIXME
-
-    with open(fname) as infile:
-        for line in infile:
-            linecount += 1
-            if linecount != linenum:
-                outfile.write(line)
-            else:  # Reached target line
-                if action == 'delete':
-                    pass  # Don't copy to new file
-                if action == 'bump':
-                    # FIXME - this would be done better in an outer
-                    # function that handles the porcelain generation of new
-                    # todolines. this one should only handle the
-                    # plumbing of the file and string handling
-                    # rewrite that line FIXME
-                    pass
-                else:
-                    print "ERROR: Unknown action %s" % action
-                    return None
-
-    # TODO: Copy outfile over old file name
 
 
 if __name__ == '__main__':
