@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 #
 # rastodo / rastatodo - text based todo list
 # Copyright (c) 2004-2016 Dylan Leigh.
@@ -503,7 +503,7 @@ def parseTodoFile(file):
                 if todoInclude(todoitem):
                     ret.append(todoitem)
             else:
-                print "Syntax error at line", linecount
+                print("Syntax error at line", linecount)
 
     # end for line in file
     return ret
@@ -556,7 +556,6 @@ if __name__ == '__main__':
                          help='Newline before description')
 
     (cliopts, cliargs) = optparser.parse_args()
-    # XXX: optparser has cyclic refs - destroy ?
 
     # TODO: Break up below into functions!
 
@@ -577,8 +576,8 @@ if __name__ == '__main__':
     if cliopts.edit:
         os.execlp(EDITOR, "editor", todopath)  # replaces this process
     # If bumping, read the whole file up to the given line
-    if cliopts.bump_line:
-        rewrite_todo_file(todopath, 'bump', cliopts.bump_line)
+    #if cliopts.bump_line:  # TODO not implemented
+    #    rewrite_todo_file(todopath, 'bump', cliopts.bump_line)
 
     # Determine any cutoff dates, categories or types to be
     # excluded beforehand so that we don't include those items when
@@ -625,7 +624,7 @@ if __name__ == '__main__':
     # Display items
     if droid is None:
         for item in todoList:
-            print item.prettyPrintStr()
+            print(item.prettyPrintStr())
     else:  # droid - display in listview
         categories = list()
         for item in todoList:
