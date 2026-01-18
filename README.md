@@ -2,6 +2,16 @@
 
 Console / Android flat text file based TODO app
 
+# Deprecation and Archiving Notice
+
+This software is no longer used by the author and this repository will be archived soon.
+
+I have switched to using ["todo.txt"](https://github.com/todotxt/todo.txt) compatible applications to take advantage of using a standard format:
+
+- For desktop/terminal use I use [topydo](https://github.com/topydo/topydo).
+
+- I am writing a todo.txt compatible replacement for rastodo called [ragtodo](https://github.com/dylanleigh/ragtodo/). This is currently just used as a dashboard to display my top few todo items on a little e-ink display, but I intend to add more functions while still keeping it compact and standard-library-only so it can be easily used on similar embedded devices.
+
 # Overview
 
 Rastodo/Rastatodo is a cross-platform Python script which parses a text file
