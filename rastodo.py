@@ -560,7 +560,7 @@ def rewriteTodoFile(fname, action, linenum, recur=None, newline=None):
                     # rewrite that line FIXME
                     pass
                 else:
-                    print "ERROR: Unknown action %s" % action
+                    print("ERROR: Unknown action %s" % action)
                     return None
 
     # TODO: Copy outfile over old file name
